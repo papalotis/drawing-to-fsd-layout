@@ -1,0 +1,6 @@
+numpy
+scipy
+scikit-image
+thinning_py3
+matplotlib
+scikit-learn
