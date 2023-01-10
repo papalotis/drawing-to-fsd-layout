@@ -271,6 +271,20 @@ def fix_edge_direction(
     return edge_rolled
 
 
+def remove_cones_too_close(cones: FloatArrayNx2) -> FloatArrayNx2:
+    while len(cones) > 0:
+        distances = cdist(cones, cones)
+        np.fill_diagonal(distances, np.inf)
+        min_distance = np.min(distances)
+        if min_distance > 1.5:
+            break
+
+        idx_to_remove = np.argwhere(distances == min_distance)[0][1]
+        cones = np.delete(cones, idx_to_remove, axis=0)
+
+    return cones
+
+
 def place_cones(
     trace: FloatArrayNx2, seed: int, mean: float, variance: float
 ) -> FloatArrayNx2:
@@ -295,4 +309,6 @@ def place_cones(
 
     randomly_placed_cones = trace[idxs_to_keep]
 
-    return randomly_placed_cones
+    final_cones = remove_cones_too_close(randomly_placed_cones)
+
+    return final_cones
