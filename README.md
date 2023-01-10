@@ -6,4 +6,4 @@ It will turn this image ![before](media/before.png) into this ![after](media/aft
 
 Clear hand-drawn tracks should also work. They do not have to be filled in.
 
-The extracted track can be downloaded as a JSON file with x,y and color values are available for each cone (in compressed JSON format), as well as an LYT file that can be used in Live for Speed.
+The extracted track can be downloaded as a JSON file with x,y and color values are available for each cone, as well as an LYT file that can be used in Live for Speed.
