@@ -96,6 +96,11 @@ def plot_contours(
 def main() -> None:
     st.title("Drawing to FSD Layout Tool by FaSTTUBe")
 
+    st.warning(
+        "This software is provided as is. It has gone very little testing."
+        " There are many bugs and mostly happy path scenarios are considered."
+    )
+
     st.markdown("## Upload image")
     image = image_upload_widget()
     st.image(image, caption="Uploaded image")
