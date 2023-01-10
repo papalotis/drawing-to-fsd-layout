@@ -33,7 +33,7 @@ def rotate(points: np.ndarray, theta: float) -> np.ndarray:
     return np.dot(points, rotation_matrix)
 
 
-def load_raw_image(image_path: Path | str) -> Image:
+def load_raw_image(image_path: Path | str | Image) -> Image:
     """
     Load an image. If input is a string, it is assumed to be a path to an image. If
     input is a Path, it is assumed to be a path to an image. If input is an image, it is
@@ -119,8 +119,14 @@ def load_image_and_preprocess(
     """Load an image and scale it to the correct size for FSD layout."""
     image = load_raw_image(image_path)
 
+    if image.ndim > 3:
+        raise ValueError(f"Image must be 2D or 3D. Image has {image.ndim} dimensions.")
+
     if image.ndim == 3:
-        image = image[:, :, :3]
+        image = rgb2gray(image)
+
+    if image.ndim == 3:
+        image = image[:, :, 0]
 
     image_resolution = np.prod(image.shape)
     target_resolution = np.prod(target_size)
@@ -129,14 +135,9 @@ def load_image_and_preprocess(
     # we need to take the root of the ratio to achieve the correct scaling
     image_resized = rescale(image, rescale_ratio**0.5)
 
-    # convert to grayscale
-    image_gray = (
-        rgb2gray(image_resized) if image_resized.ndim == 3 else image_resized.copy()
-    )
-    image_one_channel = image_gray[:, :, 0] if image_gray.ndim == 3 else image_gray
 
     # apply unsharp mask
-    image_unsharp = unsharp_mask(image_one_channel, radius=5, amount=3)
+    image_unsharp = unsharp_mask(image_resized, radius=5, amount=3)
 
     return image_unsharp
 
