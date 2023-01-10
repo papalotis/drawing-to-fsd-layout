@@ -54,28 +54,39 @@ to your assigned start/finish line will be used.
 """
 
 
+@st.cache
+def load_example_image() -> np.ndarray:
+    return io.imread("media/before.png")
+
+
 def image_upload_widget() -> np.ndarray:
-    upload_type = UploadType[st.radio("Upload type", [x.name for x in UploadType])]
+    mode = st.radio("Image upload", ["Upload", "Example Image"], horizontal=True)
 
-    if upload_type == UploadType.FILE:
-        uploaded_file = st.file_uploader("Upload an image")
-        if uploaded_file is None:
-            st.info("Please upload an image")
-            st.stop()
+    if mode == "Upload":
+        upload_type = UploadType[st.radio("Upload type", [x.name for x in UploadType])]
 
-        imread_input = uploaded_file.read()
-        kwargs_imageio = dict(plugin="imageio")
-    elif upload_type == UploadType.URL:
-        imread_input = st.text_input("URL to image")
-        if imread_input == "":
-            st.info("Please enter a URL")
-            st.stop()
+        if upload_type == UploadType.FILE:
+            uploaded_file = st.file_uploader("Upload an image")
+            if uploaded_file is None:
+                st.info("Please upload an image")
+                st.stop()
 
-        kwargs_imageio = dict()
-    else:
-        raise AssertionError("Unreachable code")
+            imread_input = uploaded_file.read()
+            kwargs_imageio = dict(plugin="imageio")
+        elif upload_type == UploadType.URL:
+            imread_input = st.text_input("URL to image")
+            if imread_input == "":
+                st.info("Please enter a URL")
+                st.stop()
 
-    image = io.imread(imread_input, **kwargs_imageio)
+            kwargs_imageio = dict()
+        else:
+            raise AssertionError("Unreachable code")
+
+        image = io.imread(imread_input, **kwargs_imageio)
+
+    elif mode == "Example Image":
+        image = load_example_image()
 
     return image
 
@@ -97,7 +108,7 @@ def main() -> None:
     st.title("Drawing to FSD Layout Tool by FaSTTUBe")
 
     st.warning(
-        "This software is provided as is. It has gone very little testing."
+        "This software is provided as is. It has undergone very little testing."
         " There are many bugs and mostly happy path scenarios are considered."
     )
 
