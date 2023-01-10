@@ -123,10 +123,10 @@ def load_image_and_preprocess(
         raise ValueError(f"Image must be 2D or 3D. Image has {image.ndim} dimensions.")
 
     if image.ndim == 3:
-        if image.shape[-1] == 3:
-            image = rgb2gray(image[:, :, :3])
+        if image.shape[2] == 3:
+            image = rgb2gray(image)
         else:
-            image = np.mean(image, axis=-1)
+            image = np.mean(image[:, :, :3], axis=-1)
 
     if image.ndim == 3:
         image = image[:, :, 0]
