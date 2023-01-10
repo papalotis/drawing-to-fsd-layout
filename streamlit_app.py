@@ -7,14 +7,19 @@ from skimage import io
 
 from drawing_to_fsd_layout.common import FloatArrayNx2
 from drawing_to_fsd_layout.cone_placement import (
-    calculate_min_track_width, calculate_min_track_width_index,
+    calculate_min_track_width,
     decide_start_finish_line_position_and_direction,
-    estimate_centerline_from_edges, estimate_centerline_length,
-    fix_edge_direction, place_cones, split_edge_to_straight_and_curve)
+    estimate_centerline_length,
+    fix_edge_direction,
+    place_cones,
+)
 from drawing_to_fsd_layout.export import cones_to_lyt, export_json_string
 from drawing_to_fsd_layout.image_processing import (
-    extract_track_edges, fix_edges_orientation_and_scale_to_unit,
-    load_image_and_preprocess, rotate)
+    extract_track_edges,
+    fix_edges_orientation_and_scale_to_unit,
+    load_image_and_preprocess,
+    rotate,
+)
 from drawing_to_fsd_layout.spline_fit import SplineFitterFactory
 
 
@@ -89,7 +94,9 @@ def plot_contours(
 
 
 def main() -> None:
-    st.title("Upload image")
+    st.title("Drawing to FSD Layout Tool by FaSTTUBe")
+
+    st.markdown("## Upload image")
     image = image_upload_widget()
     st.image(image, caption="Uploaded image")
     with st.spinner("Preprocessing image"):
@@ -116,15 +123,17 @@ def main() -> None:
     with col_left:
         desired_track_width = st.number_input(
             "Min track width",
-            min_value=0.1,
+            min_value=1.0,
+            max_value=7.0,
             value=3.0,
             disabled=scaling_method != ScalingMethod.MIN_TRACK_WIDTH,
         )
     with col_right:
         desired_centerline_length = st.number_input(
             "Centerline length",
-            min_value=1.0,
-            value=200.0,
+            min_value=200.0,
+            max_value=900.0,
+            value=350.0,
             disabled=scaling_method != ScalingMethod.CENTERLINE_LENGTH,
         )
 
@@ -152,27 +161,21 @@ def main() -> None:
         format_func=lambda x: x.name.replace("_", " ").title(),
         help="For hand-drawn tracks it is useful to smooth the track edges.",
     )
-    st.write(scale)
-    smoothing = scale / 5 * list(SmoothingDegree).index(smoothing_degree)
-    st.write("before spline")
+    smoothing = scale / 5 * list(SmoothingDegree).index(smoothing_degree) + 0.1
     spline_factory = SplineFitterFactory(
         smoothing=smoothing, predict_every=0.3, max_deg=3
     )
 
     contour_a_splined = spline_factory.fit(
-        contour_a_fixed_scaled[::2], periodic=True
+        contour_a_fixed_scaled[::3], periodic=True
     ).predict(der=0)
 
-    st.write(len(contour_a_splined), len(contour_a_fixed_scaled))
-
     contour_b_splined = spline_factory.fit(
-        contour_b_fixed_scaled[::2], periodic=True
+        contour_b_fixed_scaled[::3], periodic=True
     ).predict(der=0)
 
     min_track_width = calculate_min_track_width(contour_a_splined, contour_b_splined)
-    st.write(min_track_width)
     centerline_length = estimate_centerline_length(contour_a_splined, contour_b_splined)
-    st.write(centerline_length)
 
     st.markdown(
         f"*Min track width: {min_track_width:.2f} m | Centerline length:"
@@ -182,7 +185,7 @@ def main() -> None:
     # centerline = estimate_centerline_from_edges(contour_a_splined, contour_b_splined)
 
     st.title("Place start/finish line")
-    st.write("hi")
+
     sf_line_calculation_method = SFLineCalculationMethod(
         st.radio(
             "Method to use to place start/finish line",
@@ -196,7 +199,6 @@ def main() -> None:
         start_on_contour_a,
         direction_start,
     ) = decide_start_finish_line_position_and_direction(contour_a_splined)
-    st.write("after decide_start_finish_line_position_and_direction")
     if sf_line_calculation_method == SFLineCalculationMethod.AUTO:
         flip_direction = st.checkbox(
             "Flip track direction",

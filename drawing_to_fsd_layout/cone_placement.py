@@ -295,7 +295,4 @@ def place_cones(
 
     randomly_placed_cones = trace[idxs_to_keep]
 
-    st.write(np.linalg.norm(np.diff(randomly_placed_cones, axis=0), axis=1).mean())
-
-
     return randomly_placed_cones

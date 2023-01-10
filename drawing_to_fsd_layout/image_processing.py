@@ -226,19 +226,20 @@ def fix_edges_orientation_and_scale_to_unit(
 
     all_points = np.concatenate(points)
 
-    # peak to peak (max - min)
-    ptp = np.ptp(all_points)
-    min_value = np.min(all_points)
-    # min-max scaling
-    points_scaled = [(points - min_value) / ptp for points in points]
+    n_split = len(points[0])
 
-    points_center = np.row_stack(points_scaled).mean(axis=0)
+    ranges = np.ptp(all_points, axis=0)
 
-    points_centered = [points - points_center for points in points_scaled]
+    index_largest_range = np.argmax(ranges)
 
-    # orientation fix
-    points_rotated = [rotate(p, theta=-3.1415 / 2) for p in points_centered]
+    min_value = np.min(all_points, axis=0)[index_largest_range]
+    range_value = ranges[index_largest_range]
 
-    return points_rotated[0], points_rotated[1]
-    return points_rotated[0], points_rotated[1]
-    return points_rotated[0], points_rotated[1]
+    points_scaled = (all_points - min_value) / range_value
+
+    points_center = points_scaled.mean(axis=0)
+
+    points_centered = points_scaled - points_center
+    points_rotated = rotate(points_centered, theta=-3.1415 / 2)
+
+    return points_rotated[:n_split], points_rotated[n_split:]
