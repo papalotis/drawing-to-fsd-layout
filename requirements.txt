@@ -2,7 +2,6 @@ matplotlib==3.6.2
 networkx==2.8.8
 numba==0.56.4
 numpy==1.23.4
-scikit_image==0.19.3
+scikit-image==0.19.3
 scipy==1.10.0
-skimage==0.0
 streamlit==1.15.2
