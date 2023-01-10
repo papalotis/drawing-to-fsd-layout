@@ -127,7 +127,7 @@ def load_image_and_preprocess(
 
     rescale_ratio = target_resolution / image_resolution
     # we need to take the root of the ratio to achieve the correct scaling
-    image_resized = rescale(image, rescale_ratio**0.5, channel_axis=-1)
+    image_resized = rescale(image, rescale_ratio**0.5)
 
     # convert to grayscale
     image_gray = (
@@ -232,7 +232,7 @@ def fix_edges_orientation_and_scale_to_unit(
 
     index_largest_range = np.argmax(ranges)
 
-    min_value = np.min(all_points, axis=0)[index_largest_range]
+    min_value = np.min(all_points[:, index_largest_range])
     range_value = ranges[index_largest_range]
 
     points_scaled = (all_points - min_value) / range_value
