@@ -123,7 +123,10 @@ def load_image_and_preprocess(
         raise ValueError(f"Image must be 2D or 3D. Image has {image.ndim} dimensions.")
 
     if image.ndim == 3:
-        image = rgb2gray(image)
+        if image.shape[-1] == 3:
+            image = rgb2gray(image[:, :, :3])
+        else:
+            image = np.mean(image, axis=-1)
 
     if image.ndim == 3:
         image = image[:, :, 0]
@@ -134,7 +137,6 @@ def load_image_and_preprocess(
     rescale_ratio = target_resolution / image_resolution
     # we need to take the root of the ratio to achieve the correct scaling
     image_resized = rescale(image, rescale_ratio**0.5)
-
 
     # apply unsharp mask
     image_unsharp = unsharp_mask(image_resized, radius=5, amount=3)
