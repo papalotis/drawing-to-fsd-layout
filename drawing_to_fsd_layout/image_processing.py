@@ -160,6 +160,11 @@ def reorder_track_edge(
     first_index_over_k = np.argmax(mask_remove)
     cc_positions_ordered = cc_positions_ordered[:first_index_over_k]
 
+    cc_positions_ordered_low_res = cc_positions_ordered
+
+    while len(cc_positions_ordered) > 1000:
+        cc_positions_ordered_low_res = cc_positions_ordered_low_res[::2]
+
     return cc_positions_ordered
 
 

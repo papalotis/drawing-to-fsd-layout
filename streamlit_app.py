@@ -179,7 +179,7 @@ def main() -> None:
     )
     smoothing = scale / 5 * list(SmoothingDegree).index(smoothing_degree) + 0.1
     spline_factory = SplineFitterFactory(
-        smoothing=smoothing, predict_every=0.3, max_deg=3
+        smoothing=smoothing, predict_every=0.6, max_deg=3
     )
 
     contour_a_splined = spline_factory.fit(
