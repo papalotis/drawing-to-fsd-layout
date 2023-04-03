@@ -248,3 +248,18 @@ def cones_to_lyt(
 
     bytes_to_write = _traces_to_lyt_bytes(cones_per_type, offset)
     return bytes_to_write
+
+
+# chrono json
+
+
+def export_for_chrono_json_str(
+    cones_left: FloatArrayNx2,
+    cones_right: FloatArrayNx2,
+) -> str:
+    return json.dumps(
+        {
+            "blue": cones_left.tolist(),
+            "yellow": cones_right.tolist(),
+        }
+    )

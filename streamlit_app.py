@@ -13,7 +13,11 @@ from drawing_to_fsd_layout.cone_placement import (
     fix_edge_direction,
     place_cones,
 )
-from drawing_to_fsd_layout.export import cones_to_lyt, export_json_string
+from drawing_to_fsd_layout.export import (
+    cones_to_lyt,
+    export_for_chrono_json_str,
+    export_json_string,
+)
 from drawing_to_fsd_layout.image_processing import (
     extract_track_edges,
     fix_edges_orientation_and_scale_to_unit,
@@ -318,7 +322,15 @@ def main() -> None:
     track_name = st.text_input("Track name", "Custom Track")
     track_name_normalized = track_name.replace(" ", "_").lower()
 
-    tab_json, tab_lfs = st.tabs(["JSON", "Live for Speed Layout"])
+    do_chrono = st.experimental_get_query_params().get("chrono", False)
+
+    if not do_chrono:
+        tab_json, tab_lfs = st.tabs(["JSON", "Live for Speed Layout"])
+        tab_chrono = None
+    else:
+        tab_json, tab_lfs, tab_chrono = st.tabs(
+            ["JSON", "Live for Speed Layout", "Chrono"]
+        )
 
     with tab_json:
         json_string = export_json_string(left_cones, right_cones)
@@ -340,6 +352,16 @@ def main() -> None:
             file_name=filename,
             mime="application/octet-stream",
         )
+
+    if tab_chrono:
+        with tab_chrono:
+            chrono_string = export_for_chrono_json_str(left_cones, right_cones)
+            st.download_button(
+                "Download Chrono JSON",
+                chrono_string,
+                file_name=f"{track_name_normalized}.json",
+                mime="application/json",
+            )
 
 
 if __name__ == "__main__":
