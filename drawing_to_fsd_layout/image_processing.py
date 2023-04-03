@@ -162,18 +162,11 @@ def reorder_track_edge(
 
     cc_positions_ordered_low_res = cc_positions_ordered
 
-<<<<<<< Updated upstream
-    while len(cc_positions_ordered) > 1000:
-        cc_positions_ordered_low_res = cc_positions_ordered_low_res[::2]
-
-    return cc_positions_ordered
-=======
     while len(cc_positions_ordered_low_res) > 1000:
         st.write("hello")
         cc_positions_ordered_low_res = cc_positions_ordered_low_res[::2]
 
     return cc_positions_ordered_low_res
->>>>>>> Stashed changes
 
 
 def extract_track_edges(
