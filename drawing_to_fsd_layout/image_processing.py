@@ -163,7 +163,6 @@ def reorder_track_edge(
     cc_positions_ordered_low_res = cc_positions_ordered
 
     while len(cc_positions_ordered_low_res) > 1000:
-        st.write("hello")
         cc_positions_ordered_low_res = cc_positions_ordered_low_res[::2]
 
     return cc_positions_ordered_low_res
