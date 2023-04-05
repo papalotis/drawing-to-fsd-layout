@@ -144,6 +144,7 @@ def load_image_and_preprocess(
     return image_unsharp
 
 
+@st.cache(show_spinner=False)
 def reorder_track_edge(
     g: nx.Graph, cc_idxs: Iterable[int], all_nodes_positions: FloatArrayNx2
 ) -> FloatArrayNx2:
@@ -168,6 +169,7 @@ def reorder_track_edge(
     return cc_positions_ordered_low_res
 
 
+@st.cache(show_spinner=False, suppress_st_warning=True)
 def extract_track_edges(
     image: Image,
     show_steps: bool = False,
@@ -226,7 +228,7 @@ def extract_track_edges(
 
     return outer_ordered, inner_ordered
 
-
+@st.cache(show_spinner=False)
 def fix_edges_orientation_and_scale_to_unit(
     edge_a: FloatArrayNx2, edge_b: FloatArrayNx2
 ) -> tuple[FloatArrayNx2, FloatArrayNx2]:
