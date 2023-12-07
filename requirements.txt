@@ -6,3 +6,4 @@ scikit-image==0.19.3
 scipy==1.10.0
 streamlit==1.15.2
 altair<5
+streamlit-drawable-canvas==0.9.3

@@ -25,6 +25,7 @@ from drawing_to_fsd_layout.image_processing import (
     rotate,
 )
 from drawing_to_fsd_layout.spline_fit import SplineFitterFactory
+from drawing_to_fsd_layout.canvas_image import get_canvas_image
 
 
 class UploadType(str, Enum):
@@ -63,8 +64,10 @@ def load_example_image() -> np.ndarray:
     return io.imread("media/before.png")
 
 
-def image_upload_widget() -> np.ndarray:
-    mode = st.radio("Image upload", ["Upload", "Example Image"], horizontal=True)
+def image_upload_widget() -> tuple[np.ndarray, bool]:
+    mode = st.radio("Image upload", ["Upload", "Canvas", "Example Image"], horizontal=True)
+
+    should_show_image = True
 
     if mode == "Upload":
         upload_type = UploadType[st.radio("Upload type", [x.name for x in UploadType])]
@@ -91,8 +94,14 @@ def image_upload_widget() -> np.ndarray:
 
     elif mode == "Example Image":
         image = load_example_image()
+    
+    elif mode == "Canvas":
+        # the canvas already shows the image, so we don't need to show it again
+        should_show_image = False
+        image = get_canvas_image()
 
-    return image
+    assert image is not None
+    return image, should_show_image
 
 
 def plot_contours(
@@ -117,8 +126,10 @@ def main() -> None:
     )
 
     st.markdown("## Upload image")
-    image = image_upload_widget()
-    st.image(image, caption="Uploaded image")
+    image, should_show_image = image_upload_widget()
+    if should_show_image:
+        
+        st.image(image, caption="Uploaded image")
     with st.spinner("Preprocessing image"):
         preprocessed_image = load_image_and_preprocess(image)
 
