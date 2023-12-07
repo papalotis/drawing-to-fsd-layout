@@ -9,7 +9,7 @@ def show_canvas_warning():
 
 def get_canvas_image() -> Image:
     
-    stroke_width = st.slider("Stroke width", 1, 25, 3)
+    stroke_width = st.slider("Stroke width", 1, 25, 10)
 
     canvas_result = st_canvas(
         stroke_width=stroke_width,
