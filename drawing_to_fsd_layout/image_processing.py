@@ -205,9 +205,17 @@ def extract_track_edges(
     if len(best_clusters) == 2:
         outer, inner = best_clusters
         cc_outer, cc_inner = best_ccs
-    else:
+    elif len(best_clusters) == 4:
         outer, _, inner, _ = best_clusters
         cc_outer, _, cc_inner, _ = best_ccs
+    elif len(best_clusters) == 1:
+        st.error(
+            "There was an error extracting the two track edges. Have you drawn a closed track?"
+        )
+        st.stop()
+    elif len(best_clusters) == 0:
+        st.error("No track edges were found. Have you drawn a track?")
+        st.stop()
 
     if show_steps:
         plt.figure()
@@ -227,6 +235,7 @@ def extract_track_edges(
         st.pyplot(plt.gcf())
 
     return outer_ordered, inner_ordered
+
 
 @st.cache(show_spinner=False)
 def fix_edges_orientation_and_scale_to_unit(

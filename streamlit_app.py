@@ -1,11 +1,13 @@
 from enum import Enum
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 from skimage import io
 
-from drawing_to_fsd_layout.common import FloatArrayNx2
+from drawing_to_fsd_layout.canvas_image import get_canvas_image
+from drawing_to_fsd_layout.common import FloatArrayNx2, find_github_link_of_repo
 from drawing_to_fsd_layout.cone_placement import (
     calculate_min_track_width,
     decide_start_finish_line_position_and_direction,
@@ -15,7 +17,6 @@ from drawing_to_fsd_layout.cone_placement import (
 )
 from drawing_to_fsd_layout.export import (
     cones_to_lyt,
-    export_for_chrono_json_str,
     export_json_string,
 )
 from drawing_to_fsd_layout.image_processing import (
@@ -25,7 +26,8 @@ from drawing_to_fsd_layout.image_processing import (
     rotate,
 )
 from drawing_to_fsd_layout.spline_fit import SplineFitterFactory
-from drawing_to_fsd_layout.canvas_image import get_canvas_image
+
+st.set_page_config(page_title="Drawing to Layout", page_icon="🏎️")
 
 
 class UploadType(str, Enum):
@@ -34,7 +36,7 @@ class UploadType(str, Enum):
 
 
 class ScalingMethod(str, Enum):
-    MIN_TRACK_WIDTH = "min_track_width"
+    MINIMUM_TRACK_WIDTH = "minimum_track_width"
     CENTERLINE_LENGTH = "centerline_length"
 
 
@@ -65,12 +67,24 @@ def load_example_image() -> np.ndarray:
 
 
 def image_upload_widget() -> tuple[np.ndarray, bool]:
-    mode = st.radio("Image upload", ["Upload", "Canvas", "Example Image"], horizontal=True)
+    mode = st.radio(
+        "Image upload",
+        ["Upload", "Canvas", "Example Image"],
+        horizontal=True,
+        help="Choose how to upload an image. You can upload an image of a track drawing, use the canvas inside this app, or use an example image to get an understanding of how the app works.",
+    )
 
     should_show_image = True
 
     if mode == "Upload":
-        upload_type = UploadType[st.radio("Upload type", [x.name for x in UploadType])]
+        upload_type = UploadType[
+            st.radio(
+                "Upload type",
+                [x.name for x in UploadType],
+                horizontal=True,
+                help="Choose whether to upload an image file or enter a URL to an image.",
+            )
+        ]
 
         if upload_type == UploadType.FILE:
             uploaded_file = st.file_uploader("Upload an image")
@@ -94,11 +108,13 @@ def image_upload_widget() -> tuple[np.ndarray, bool]:
 
     elif mode == "Example Image":
         image = load_example_image()
-    
+
     elif mode == "Canvas":
         # the canvas already shows the image, so we don't need to show it again
         should_show_image = False
         image = get_canvas_image()
+
+        # st.image(image)
 
     assert image is not None
     return image, should_show_image
@@ -120,15 +136,27 @@ def plot_contours(
 def main() -> None:
     st.title("Drawing to FSD Layout Tool by FaSTTUBe")
 
+    # dynmaically create issues link so that if the repo is forked the link is still correct
+    try:
+        link = find_github_link_of_repo()
+    except ValueError:
+        st.write("could not find link to remote")
+        link = "https://github.com/papalotis/drawing-to-fsd-layout/"
+
+    if not link.endswith("/"):
+        link += "/"
+
+    link += "issues"
+
     st.warning(
-        "This software is provided as is. It has undergone very little testing."
+        "This tool is provided as is. It has undergone very little testing."
         " There are many bugs and mostly happy path scenarios are considered."
+        f" If you find a bug, please report it on the [GitHub repository]({link})."
     )
 
     st.markdown("## Upload image")
     image, should_show_image = image_upload_widget()
     if should_show_image:
-        
         st.image(image, caption="Uploaded image")
     with st.spinner("Preprocessing image"):
         preprocessed_image = load_image_and_preprocess(image)
@@ -144,6 +172,16 @@ def main() -> None:
     )
 
     st.title("Scale to real-world units")
+
+    st.info(
+        """Choose how to scale the track to real-world units. You can either specify the minimum track width or the centerline length. The track will be scaled to match the specified value. The scaling is not perfect and the resulting track might not have the exact specified value. You might need to play around with the scaling method and the smoothing to get the desired result.
+        
+        
+The default minimum track width is set to 3.3m. This is because the official minimum track width is 3.0 meters but that is measured from the inside of both track edges. The tool always considers the center of the cones so 0.15 meters are added to each side to compensate. You can change this value to match the track width you want. The track width is the distance between the two track edges.
+        """,
+        # icon="📏",
+    )
+
     scaling_method = st.radio(
         "Method to use to scale to real world units",
         list(ScalingMethod),
@@ -153,11 +191,11 @@ def main() -> None:
     col_left, col_right = st.columns(2)
     with col_left:
         desired_track_width = st.number_input(
-            "Min track width",
-            min_value=1.0,
+            "Minimum track width",
+            min_value=2.0,
             max_value=7.0,
-            value=3.0,
-            disabled=scaling_method != ScalingMethod.MIN_TRACK_WIDTH,
+            value=3.3,
+            disabled=scaling_method != ScalingMethod.MINIMUM_TRACK_WIDTH,
         )
     with col_right:
         desired_centerline_length = st.number_input(
@@ -168,7 +206,7 @@ def main() -> None:
             disabled=scaling_method != ScalingMethod.CENTERLINE_LENGTH,
         )
 
-    if scaling_method == ScalingMethod.MIN_TRACK_WIDTH:
+    if scaling_method == ScalingMethod.MINIMUM_TRACK_WIDTH:
         unscaled_min_track_width = calculate_min_track_width(
             contour_a_fixed, contour_b_fixed
         )
@@ -316,34 +354,49 @@ def main() -> None:
         head_width=min_track_width,
     )
 
-    plt.plot(*right_cones.T, ".", c="gold", label="Contour A", markersize=2)
-    plt.plot(*left_cones.T, ".", c="b", label="Contour B", markersize=2)
+    plt.plot(
+        *right_cones[1:].T,
+        "o",
+        c="gold",
+        label="Contour A",
+        markersize=5,
+        markeredgecolor="black",
+    )
+    plt.plot(
+        *left_cones[1:].T,
+        "o",
+        c="b",
+        label="Contour B",
+        markersize=5,
+        markeredgecolor="black",
+    )
+
     plt.plot(
         [left_cones[0, 0], right_cones[0, 0]],
         [left_cones[0, 1], right_cones[0, 1]],
-        "x",
+        "o",
         c="orange",
+        markersize=7,
+        markeredgecolor="black",
     )
     plt.axis("equal")
     plt.title("Final track layout")
 
     st.pyplot(plt.gcf())
+    st.info(
+        "The cone markers in the plot are not to scale. They are just for visualization."
+    )
 
     st.title("Export")
     track_name = st.text_input("Track name", "Custom Track")
     track_name_normalized = track_name.replace(" ", "_").lower()
 
-    do_chrono = st.experimental_get_query_params().get("chrono", False)
-
-    if not do_chrono:
-        tab_json, tab_lfs = st.tabs(["JSON", "Live for Speed Layout"])
-        tab_chrono = None
-    else:
-        tab_json, tab_lfs, tab_chrono = st.tabs(
-            ["JSON", "Live for Speed Layout", "Chrono"]
-        )
+    tab_json, tab_lfs = st.tabs(["JSON", "Live for Speed Layout"])
 
     with tab_json:
+        st.info(
+            "The JSON object has 3 keys: `x`, `y` and `color`. `x` and `y` are lists of floats representing the x and y coordinates of the cones. `color` is a list of strings representing the color of the cones. The colors are either `blue`, `yellow` or `orange_big`. The length of the three lists should be the same. The cones appear in the same order as the track direction. The first cone is the start/finish line. The cones are ordered in the direction of the track."
+        )
         json_string = export_json_string(left_cones, right_cones)
         st.download_button(
             "Download JSON",
@@ -362,17 +415,8 @@ def main() -> None:
             lyt_bytes,
             file_name=filename,
             mime="application/octet-stream",
+            help="This file should be placed inside the `data/layout` folder of your LFS installation.",
         )
-
-    if tab_chrono:
-        with tab_chrono:
-            chrono_string = export_for_chrono_json_str(left_cones, right_cones)
-            st.download_button(
-                "Download Chrono JSON",
-                chrono_string,
-                file_name=f"{track_name_normalized}.json",
-                mime="application/json",
-            )
 
 
 if __name__ == "__main__":
