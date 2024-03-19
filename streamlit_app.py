@@ -134,8 +134,11 @@ def plot_contours(
 
 
 def main() -> None:
-    st.title("Drawing to FSD Layout Tool by FaSTTUBe")
+    _, center, _ = st.columns([1, 3, 1])
+    with center:
+        st.image("https://fasttube.de/wp-content/uploads/2016/01/logo_medium_black.png")
 
+    st.title("Drawing to FSD Layout Tool by FaSTTUBe")
     # dynmaically create issues link so that if the repo is forked the link is still correct
     try:
         link = find_github_link_of_repo()
@@ -149,12 +152,12 @@ def main() -> None:
     link += "issues"
 
     st.warning(
-        "This tool is provided as is. It has undergone very little testing."
+        "This tool is provided as is. It has undergone little testing."
         " There are many bugs and mostly happy path scenarios are considered."
         f" If you find a bug, please report it on the [GitHub repository]({link})."
     )
 
-    st.markdown("## Upload image")
+    st.markdown("## Image")
     image, should_show_image = image_upload_widget()
     if should_show_image:
         st.image(image, caption="Uploaded image")
