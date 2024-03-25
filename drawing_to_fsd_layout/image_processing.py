@@ -194,7 +194,7 @@ def extract_track_edges(
         edge_pixels = np.argwhere(image_canny > 0.01)
 
         if len(edge_pixels) < 10000:
-            st.write(i, len(edge_pixels))
+            # st.write(i, len(edge_pixels))
             break
         # st.write("Too many edge pixels, trying again with lower resolution")
         image = rescale(image, 0.95)
