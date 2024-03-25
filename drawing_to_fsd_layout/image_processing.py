@@ -176,18 +176,35 @@ def extract_track_edges(
 ) -> tuple[FloatArrayNx2, FloatArrayNx2]:
     # apply canny edge detection with increasing sigma until the number of pixels
     # designated as edges is low enough
-    for s in np.linspace(2, 5, 20):
-        image_canny = canny(image, sigma=s).astype(float)
-        m = image_canny.mean()
-        if m < 0.03:  # prior, found by trial and error
+
+    image = image.copy()
+
+    for i in range(10):
+        for s in np.linspace(2, 5, 20):
+            image_canny = canny(image, sigma=s).astype(float)
+            m = image_canny.mean()
+            if m < 0.03:  # prior, found by trial and error
+                break
+
+        if show_steps:
+            st.image(image_canny, caption="Canny edge detection")
+
+        # treat each pixel as a node in a graph and connect nodes that are close to each
+        # other
+        edge_pixels = np.argwhere(image_canny > 0.01)
+
+        if len(edge_pixels) < 6000:
             break
+        # st.write("Too many edge pixels, trying again with lower resolution")
+        image = rescale(image, 0.8)
 
-    if show_steps:
-        st.image(image_canny, caption="Canny edge detection")
+        # st.write(f"Found {len(edge_pixels)} of pixels as edges")
+    else:
+        st.error(
+            "The number of pixels designated as edges is too high. Try a different image."
+        )
+        st.stop()
 
-    # treat each pixel as a node in a graph and connect nodes that are close to each
-    # other
-    edge_pixels = np.argwhere(image_canny > 0.01)
     dist = cdist(edge_pixels, edge_pixels)
     adj = dist < 2
     adj[np.eye(len(adj), len(adj), dtype=bool)] = 0
