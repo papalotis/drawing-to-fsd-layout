@@ -179,7 +179,7 @@ def extract_track_edges(
 
     image = image.copy()
 
-    for i in range(10):
+    for i in range(20):
         for s in np.linspace(2, 5, 20):
             image_canny = canny(image, sigma=s).astype(float)
             m = image_canny.mean()
@@ -193,10 +193,11 @@ def extract_track_edges(
         # other
         edge_pixels = np.argwhere(image_canny > 0.01)
 
-        if len(edge_pixels) < 6000:
+        if len(edge_pixels) < 10000:
+            st.write(i, len(edge_pixels))
             break
         # st.write("Too many edge pixels, trying again with lower resolution")
-        image = rescale(image, 0.8)
+        image = rescale(image, 0.95)
 
         # st.write(f"Found {len(edge_pixels)} of pixels as edges")
     else:
@@ -204,6 +205,9 @@ def extract_track_edges(
             "The number of pixels designated as edges is too high. Try a different image."
         )
         st.stop()
+
+    if show_steps:
+        st.image(image, caption="Rescaled image")
 
     dist = cdist(edge_pixels, edge_pixels)
     adj = dist < 2
