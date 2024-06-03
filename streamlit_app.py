@@ -11,6 +11,7 @@ from drawing_to_fsd_layout.common import FloatArrayNx2, find_github_link_of_repo
 from drawing_to_fsd_layout.cone_placement import (
     calculate_min_track_width,
     decide_start_finish_line_position_and_direction,
+    estimate_centerline_from_edges,
     estimate_centerline_length,
     fix_edge_direction,
     place_cones,
@@ -254,7 +255,7 @@ The default minimum track width is set to 3.3m. This is because the official min
         f" {centerline_length:.2f} m*"
     )
 
-    # centerline = estimate_centerline_from_edges(contour_a_splined, contour_b_splined)
+    centerline = estimate_centerline_from_edges(contour_a_splined, contour_b_splined)
 
     st.title("Place start/finish line")
 
@@ -357,6 +358,16 @@ The default minimum track width is set to 3.3m. This is because the official min
         head_width=min_track_width,
     )
 
+
+    plt.plot(
+        *centerline.T,
+        "--",
+        c="red",
+        label="Centerline",
+        markersize=5,
+        markeredgecolor="red",
+    )
+
     plt.plot(
         *right_cones[1:].T,
         "o",
@@ -400,7 +411,7 @@ The default minimum track width is set to 3.3m. This is because the official min
         st.info(
             "The JSON object has 3 keys: `x`, `y` and `color`. `x` and `y` are lists of floats representing the x and y coordinates of the cones. `color` is a list of strings representing the color of the cones. The colors are either `blue`, `yellow` or `orange_big`. The length of the three lists should be the same. The cones appear in the same order as the track direction. The first cone is the start/finish line. The cones are ordered in the direction of the track."
         )
-        json_string = export_json_string(left_cones, right_cones)
+        json_string = export_json_string(left_cones, right_cones, centerline)
         st.download_button(
             "Download JSON",
             json_string,
@@ -409,7 +420,7 @@ The default minimum track width is set to 3.3m. This is because the official min
         )
     with tab_lfs:
         world_name = "LA2"
-        lyt_bytes = cones_to_lyt(world_name, left_cones, right_cones)
+        lyt_bytes = cones_to_lyt(world_name, left_cones, right_cones, centerline)
 
         filename = f"{world_name}_{track_name_normalized}.lyt"
 
