@@ -23,7 +23,9 @@ def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2, ce
     cones_y = np.concatenate((edges_left[:, 1], edges_right[:, 1])).tolist()
     centerline_x = centerline[:,0].tolist()
     centerline_y = centerline[:,1].tolist()
-    centerline
+    start_x = (edges_left[-2, 0], edges_right[-2, 0])
+    start_y = (edges_left[-2, 1], edges_right[-2, 1])
+    start_heading = angle_from_2d_vector(edges_right[-1] - edges_right[-2])
     cones_color = (
         ["orange_big"]
         + ["blue"] * (len(edges_left) - 1)
@@ -35,7 +37,10 @@ def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2, ce
         "y": cones_y,
         "color": cones_color,
         "centerline_x": centerline_x,
-        "centerline_y": centerline_y
+        "centerline_y": centerline_y,
+        "start_x": start_x,
+        "start_y": start_y,
+        "start_heading": start_heading
     }
 
     return json.dumps(obj)
@@ -229,8 +234,7 @@ def _traces_to_lyt_bytes(
 def cones_to_lyt(
     world_name: Literal["BL4", "AU1", "AU2", "AU3", "WE3", "LA2"],
     cones_left: FloatArrayNx2,
-    cones_right: FloatArrayNx2,
-    centerline: FloatArrayNx2
+    cones_right: FloatArrayNx2
 ) -> bytes:
     offset = {
         "BL4": (-261, 124),
