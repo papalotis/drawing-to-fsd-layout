@@ -8,7 +8,7 @@ import numpy as np
 from drawing_to_fsd_layout.common import FloatArrayNx2
 
 
-def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2) -> str:
+def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2, centerline: FloatArrayNx2) -> str:
     """
     Export the track edges to a JSON string that can be used in the FSD layout editor.
 
@@ -21,6 +21,9 @@ def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2) ->
     """
     cones_x = np.concatenate((edges_left[:, 0], edges_right[:, 0])).tolist()
     cones_y = np.concatenate((edges_left[:, 1], edges_right[:, 1])).tolist()
+    centerline_x = centerline[:,0].tolist()
+    centerline_y = centerline[:,1].tolist()
+    centerline
     cones_color = (
         ["orange_big"]
         + ["blue"] * (len(edges_left) - 1)
@@ -31,6 +34,8 @@ def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2) ->
         "x": cones_x,
         "y": cones_y,
         "color": cones_color,
+        "centerline_x": centerline_x,
+        "centerline_y": centerline_y
     }
 
     return json.dumps(obj)
@@ -225,6 +230,7 @@ def cones_to_lyt(
     world_name: Literal["BL4", "AU1", "AU2", "AU3", "WE3", "LA2"],
     cones_left: FloatArrayNx2,
     cones_right: FloatArrayNx2,
+    centerline: FloatArrayNx2
 ) -> bytes:
     offset = {
         "BL4": (-261, 124),
@@ -245,6 +251,7 @@ def cones_to_lyt(
     cones_per_type[ConeTypes.START_FINISH_LINE] = np.row_stack(
         (cones_left[0], cones_right[0])
     )
+
 
     bytes_to_write = _traces_to_lyt_bytes(cones_per_type, offset)
     return bytes_to_write
