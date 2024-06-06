@@ -31,15 +31,11 @@ def export_json_string(edges_left: FloatArrayNx2, edges_right: FloatArrayNx2, ce
         + ["yellow"] * (len(edges_right) - 1)
     )
     obj = {
-        "cones":{
-            "x": cones_x,
-            "y": cones_y,
-            "color": cones_color,
-            },
-        "centerline": {
-            "x": centerline_x,
-            "y": centerline_y
-            }
+        "x": cones_x,
+        "y": cones_y,
+        "color": cones_color,
+        "centerline_x": centerline_x,
+        "centerline_y": centerline_y
     }
 
     return json.dumps(obj)
@@ -256,7 +252,6 @@ def cones_to_lyt(
         (cones_left[0], cones_right[0])
     )
 
-    cones_per_type.append(np.array(centerline)) 
 
     bytes_to_write = _traces_to_lyt_bytes(cones_per_type, offset)
     return bytes_to_write
