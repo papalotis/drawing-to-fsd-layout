@@ -420,7 +420,7 @@ The default minimum track width is set to 3.3m. This is because the official min
         )
     with tab_lfs:
         world_name = "LA2"
-        lyt_bytes = cones_to_lyt(world_name, left_cones, right_cones, centerline)
+        lyt_bytes = cones_to_lyt(world_name, left_cones, right_cones)
 
         filename = f"{world_name}_{track_name_normalized}.lyt"
 
